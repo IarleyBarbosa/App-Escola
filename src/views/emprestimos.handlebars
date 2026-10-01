@@ -1,0 +1,140 @@
+<!-- Título principal da página de gerenciamento -->
+<h1>Gerenciamento de Empréstimos</h1>
+
+<!-- ======================================================================= -->
+<!-- SEÇÃO: FORMULÁRIO DE CADASTRO                                           -->
+<!-- ======================================================================= -->
+<section>
+  <h2>Novo Empréstimo</h2>
+
+  <!-- Formulário envia os dados via requisição POST para a rota '/emprestimos' -->
+  <form action="/emprestimos" method="POST">
+
+    <!-- Campo de Seleção do Aluno -->
+    <div>
+      <label for="alunoId">Aluno:</label>
+      <select name="alunoId" id="alunoId" required>
+        <!-- Opção padrão desabilitada para forçar o usuário a escolher um aluno -->
+        <option value="" disabled selected>Selecione um aluno...</option>
+
+        <!-- Loop Handlebars: Itera sobre a lista de alunos recebida pelo servidor -->
+        {{#each alunos}}
+          <!-- O valor enviado será a 'matricula', mas exibe o 'nome' e a 'matricula' na tela -->
+          <option value="{{this.matricula}}">
+            {{this.nome}}
+            (Matrícula:
+            {{this.matricula}})
+          </option>
+        {{/each}}
+      </select>
+    </div>
+
+    <!-- Campo de Seleção do Livro -->
+    <div>
+      <label for="livroId">Livro Disponível:</label>
+      <select name="livroId" id="livroId" required>
+        <!-- Opção padrão desabilitada -->
+        <option value="" disabled selected>Selecione um livro...</option>
+
+        <!-- Loop Handlebars: Itera sobre a lista de todos os livros -->
+        {{#each livros}}
+          <!-- Condicional Handlebars: Exibe no select apenas os livros que estão disponíveis -->
+          {{#if this.disponivel}}
+            <!-- O valor enviado será o 'id_livro' -->
+            <option value="{{this.id_livro}}">
+              {{this.titulo}}
+              (ID:
+              {{this.id_livro}})
+            </option>
+          {{/if}}
+        {{/each}}
+      </select>
+    </div>
+
+    <!-- Campo para a Data de Início do Empréstimo -->
+    <div>
+      <label for="dataEmprestimo">Data de Empréstimo:</label>
+      <input type="date" id="dataEmprestimo" name="dataEmprestimo" required />
+    </div>
+
+    <!-- Campo para a Data Prevista para Devolução -->
+    <div>
+      <label for="dataDevolucao">Data de Devolução Prevista:</label>
+      <input type="date" id="dataDevolucao" name="dataDevolucao" required />
+    </div>
+
+    <!-- Botão que aciona o envio (POST) do formulário -->
+    <button type="submit">Cadastrar Empréstimo</button>
+  </form>
+</section>
+
+<hr />
+
+<section>
+  <h2>Empréstimos Realizados</h2>
+
+  {{#if emprestimos.length}}
+
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>Aluno</th>
+          <th>Livro</th>
+          <th>Data Empréstimo</th>
+          <th>Data Devolução</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Loop Handlebars: Itera sobre o array de empréstimos e exibe uma linha <tr> para cada um -->
+        {{#each emprestimos}}
+          <tr>
+            <td>{{this.id_emprestimo}}</td>
+            <!-- Acessa o nome do aluno associado ao empréstimo -->
+            <td>{{this.aluno.nome}}</td>
+            <!-- Acessa o título do livro associado ao empréstimo -->
+            <td>{{this.livro.titulo}}</td>
+            <td>{{this.dataEmprestimo}}</td>
+            <td>{{this.dataDevolucao}}</td>
+            <td>
+
+              <form
+                action="/emprestimos/{{this.id_emprestimo}}?_method=DELETE"
+                method="post"
+                onclick="return confirm('Tem certeza que deseja devolver este empréstimo?');"
+                style="display:inline"
+              >
+              <button type="submit">Devolver</button>
+              </form>
+
+              <form action="/emprestimos/{{this.id_emprestimo}}?_method=PUT"
+                method="POST">
+
+                <select name="livroId">
+                  {{#each ../livros}}
+
+                  <option value="{{this.id_livro}}"
+                    {{#if this.selecionado}}selected{{/if}}>
+                    {{this.titulo}}
+                  </option>
+
+                  {{/each}}
+                </select>
+
+                <input type="date" name="dataDevolucao"
+                value="{{emprestimo.dataDevolucao}}" />
+
+                <button>Salvar alterações</button>
+              </form>
+
+            </td>
+
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  {{else}}
+
+    <p>Nenhum empréstimo cadastrado no momento.</p>
+  {{/if}}
+</section>
